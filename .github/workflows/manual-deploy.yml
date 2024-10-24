@@ -29,6 +29,7 @@ jobs:
           echo "Setting variables for prod"
           echo "DB_URL=${{ secrets.PROD_DB_URL }}" >> $GITHUB_ENV
           echo "API_KEY=${{ secrets.PROD_API_KEY }}" >> $GITHUB_ENV
+        fi
 
     - name: Verify Environment Variables
       run: |
