@@ -17,7 +17,7 @@ jobs:
     outputs:
       db_url: ${{ steps.set_env_vars.outputs.db_url }}
       api_key: ${{ steps.set_env_vars.outputs.api_key }}
-      
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -26,18 +26,17 @@ jobs:
       id: set_env_vars
       run: |
         if [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
-          echo "Setting variables for dev"
           echo "::set-output name=db_url::${{ secrets.DEV_DB_URL }}"
           echo "::set-output name=api_key::${{ secrets.DEV_API_KEY }}"
         elif [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
-          echo "Setting variables for prod"
           echo "::set-output name=db_url::${{ secrets.PROD_DB_URL }}"
           echo "::set-output name=api_key::${{ secrets.PROD_API_KEY }}"
         fi
 
   deploy:
     runs-on: ubuntu-latest
-    needs: generate_env_vars  # Ensure deploy job runs after generate_env_vars
+    needs: generate_env_vars
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
