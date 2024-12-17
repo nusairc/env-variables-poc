@@ -12,27 +12,37 @@ on:
           - prod
 
 jobs:
+  generate_env_vars:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set Environment Variables
+      id: set_env_vars  # Define the step id for outputs
+      run: |
+        if [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
+          echo "DB_URL=${{ secrets.DEV_DB_URL }}" >> $GITHUB_ENV
+          echo "API_KEY=${{ secrets.DEV_API_KEY }}" >> $GITHUB_ENV
+          echo "::set-output name=db_url::${{ secrets.DEV_DB_URL }}"
+          echo "::set-output name=api_key::${{ secrets.DEV_API_KEY }}"
+        elif [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
+          echo "DB_URL=${{ secrets.PROD_DB_URL }}" >> $GITHUB_ENV
+          echo "API_KEY=${{ secrets.PROD_API_KEY }}" >> $GITHUB_ENV
+          echo "::set-output name=db_url::${{ secrets.PROD_DB_URL }}"
+          echo "::set-output name=api_key::${{ secrets.PROD_API_KEY }}"
+        fi
+
   deploy:
+    needs: generate_env_vars  # This means the deploy job will run only after generate_env_vars job completes
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set Environment Variables
-      run: |
-        if [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
-          echo "Setting variables for dev"
-          echo "DB_URL=${{ secrets.DEV_DB_URL }}" >> $GITHUB_ENV
-          echo "API_KEY=${{ secrets.DEV_API_KEY }}" >> $GITHUB_ENV
-        elif [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
-          echo "Setting variables for prod"
-          echo "DB_URL=${{ secrets.PROD_DB_URL }}" >> $GITHUB_ENV
-          echo "API_KEY=${{ secrets.PROD_API_KEY }}" >> $GITHUB_ENV
-        fi
-
-    - name: Verify Environment Variables
+    - name: Deploy to Environment
       run: |
         echo "Deploying to environment: ${{ github.event.inputs.environment }}"
-        echo "DB_URL is $DB_URL"
-        echo "API_KEY is $API_KEY"
+        echo "Using DB_URL: ${{ needs.generate_env_vars.outputs.db_url }}"
+        echo "Using API_KEY: ${{ needs.generate_env_vars.outputs.api_key }}"
